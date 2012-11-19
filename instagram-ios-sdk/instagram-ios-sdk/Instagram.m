@@ -77,15 +77,24 @@ static void *finishedContext = @"finishedContext";
 - (IGRequest*)openUrl:(NSString *)url
                params:(NSMutableDictionary *)params
            httpMethod:(NSString *)httpMethod
-             delegate:(id<IGRequestDelegate>)delegate {
-    
-//    [params setValue:@"json" forKey:@"format"];
-//    [params setValue:kSDK forKey:@"sdk"];
-//    [params setValue:kSDKVersion forKey:@"sdk_version"];
-    if ([self isSessionValid]) {
-        [params setValue:self.accessToken forKey:@"access_token"];
+             delegate:(id<IGRequestDelegate>)delegate
+    isAuthorizationRequired:(BOOL)isAuthorizationRequired
+{
+    //    [params setValue:@"json" forKey:@"format"];
+    //    [params setValue:kSDK forKey:@"sdk"];
+    //    [params setValue:kSDKVersion forKey:@"sdk_version"];
+    if (isAuthorizationRequired)
+    {
+        if ([self isSessionValid])
+        {
+            [params setValue:self.accessToken forKey:@"access_token"];
+        }
     }
-    
+    else
+    {
+        [params setValue:self.clientId forKey:@"client_id"];
+    }
+
     IGRequest* _request = [IGRequest getRequestWithParams:params
                                                httpMethod:httpMethod
                                                  delegate:delegate
@@ -94,6 +103,18 @@ static void *finishedContext = @"finishedContext";
     [_request addObserver:self forKeyPath:requestFinishedKeyPath options:0 context:finishedContext];
     [_request connect];
     return _request;
+}
+
+- (IGRequest*)openUrl:(NSString *)url
+               params:(NSMutableDictionary *)params
+           httpMethod:(NSString *)httpMethod
+             delegate:(id<IGRequestDelegate>)delegate {
+
+    return [self openUrl:url
+                  params:params
+              httpMethod:httpMethod
+                delegate:delegate
+ isAuthorizationRequired:YES];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
@@ -248,10 +269,22 @@ static void *finishedContext = @"finishedContext";
                         httpMethod:(NSString*)httpMethod
                           delegate:(id<IGRequestDelegate>)delegate {
     NSString * fullURL = [kRestserverBaseURL stringByAppendingString:methodName];
-    return [self openUrl:fullURL
-                  params:params
-              httpMethod:httpMethod
-                delegate:delegate];
+
+    if ([methodName hasPrefix:@"tags"])
+    {
+        return [self openUrl:fullURL
+                      params:params
+                  httpMethod:httpMethod
+                    delegate:delegate
+     isAuthorizationRequired:NO];
+    }
+    else
+    {
+        return [self openUrl:fullURL
+                      params:params
+                  httpMethod:httpMethod
+                    delegate:delegate];
+    }
 }
 
 - (BOOL)isSessionValid {

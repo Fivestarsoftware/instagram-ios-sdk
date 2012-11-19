@@ -35,6 +35,12 @@
                         httpMethod:(NSString*)httpMethod
                           delegate:(id<IGRequestDelegate>)delegate;
 
+- (IGRequest*)openUrl:(NSString *)url
+               params:(NSMutableDictionary *)params
+           httpMethod:(NSString *)httpMethod
+             delegate:(id<IGRequestDelegate>)delegate
+isAuthorizationRequired:(BOOL)isAuthorizationRequired;
+
 @end
 
 
